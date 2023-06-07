@@ -9,7 +9,7 @@ const config = require("../config");
 
 // uploads a manifest CSV to S3 and returns a signed CloudFront URL
 async function uploadManifestToS3(parameters) {
-  console.log("GRAPHQL RESOLVER CALLED!");
+  console.log("STORE MANIFEST RESOLVER CALLED!");
   try {
     const s3Client = new S3Client({
       region: config.AWS_REGION,

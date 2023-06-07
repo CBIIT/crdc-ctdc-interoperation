@@ -94,6 +94,7 @@ async function getIcdcStudyIds() {
 
 // map image collections to corresponding ICDC studies
 async function mapCollectionsToStudies(parameters, context) {
+  console.log("MAP TO ICDC STUDIES RESOLVER CALLED!");
   try {
     let redisConnected;
     let redisClient;
