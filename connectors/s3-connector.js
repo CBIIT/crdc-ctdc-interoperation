@@ -9,11 +9,8 @@ const config = require("../config");
 
 // uploads a manifest CSV to S3 and returns a signed CloudFront URL
 async function uploadManifestToS3(parameters) {
+  console.log("GRAPHQL RESOLVER CALLED!");
   try {
-    console.log("MANIFEST:  ", parameters.manifest);
-    console.log("CLOUDFRONT KEY PAIR ID:  ", config.CLOUDFRONT_KEY_PAIR_ID);
-    console.log("CLOUDFRONT PRIVATE KEY:  ", config.CLOUDFRONT_PRIVATE_KEY);
-
     const s3Client = new S3Client({
       region: config.AWS_REGION,
       credentials: {
@@ -21,6 +18,7 @@ async function uploadManifestToS3(parameters) {
         secretAccessKey: config.S3_SECRET_ACCESS_KEY,
       },
     });
+    console.log("S3 CLIENT INITIALIZED!");
 
     const manifestCsv = convertObjectArrayToCsv(parameters.manifest);
     console.log("MANIFEST CSV:  ", manifestCsv);
@@ -29,6 +27,7 @@ async function uploadManifestToS3(parameters) {
     await fs.writeFile(tempCsvFilePath, manifestCsv, {
       encoding: "utf-8",
     });
+    console.log("TEMP MANIFEST CSV WRITTEN!");
 
     const uploadParams = {
       Bucket: config.FILE_MANIFEST_BUCKET_NAME,
@@ -37,6 +36,7 @@ async function uploadManifestToS3(parameters) {
     };
     const uploadCommand = new PutObjectCommand(uploadParams);
     await s3Client.send(uploadCommand);
+    console.log("OBJECT UPLOADED TO S3 BUCKET!");
 
     return getSignedUrl({
       keyPairId: config.CLOUDFRONT_KEY_PAIR_ID,
