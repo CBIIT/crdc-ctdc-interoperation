@@ -25,6 +25,11 @@ async function uploadManifestToS3(parameters) {
       encoding: "utf-8",
     });
 
+    console.log("MANIFEST CSV:  ", manifestCsv);
+    console.log("CLOUDFRONT KEY PAIR ID:  ", config.CLOUDFRONT_KEY_PAIR_ID);
+    console.log("CLOUDFRONT PRIVATE KEY:  ", config.CLOUDFRONT_PRIVATE_KEY);
+    console.log("TEMP CSV PATH:  ", tempCsvFilePath);
+
     const uploadParams = {
       Bucket: config.FILE_MANIFEST_BUCKET_NAME,
       Key: tempCsvFile,
@@ -42,6 +47,7 @@ async function uploadManifestToS3(parameters) {
       ),
     });
   } catch (error) {
+    console.log("ERROR UPLOADING TO S3 BUCKET!");
     console.error(error);
   }
 }
