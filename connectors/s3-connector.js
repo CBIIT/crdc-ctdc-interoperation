@@ -49,6 +49,7 @@ async function uploadManifestToS3(parameters) {
   } catch (error) {
     console.log("ERROR UPLOADING TO S3 BUCKET!");
     console.error(error);
+    return error;
   }
 }
 
