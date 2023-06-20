@@ -22,13 +22,20 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "http://localhost:3000/",
       "https://caninecommons-dev.cancer.gov",
       "https://caninecommons-qa.cancer.gov",
       "https://caninecommons.cancer.gov",
     ],
-    accessControlAllowOrigin: "*",
-    accessControlAllowCredentials: true,
+    credentials: true,
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "device-remember-token",
+      "Access-Control-Allow-Origin",
+      "Origin",
+      "Accept",
+    ],
   })
 );
 
