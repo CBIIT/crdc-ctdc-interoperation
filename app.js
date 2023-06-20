@@ -26,6 +26,8 @@ app.use(
       "https://caninecommons-qa.cancer.gov",
       "https://caninecommons.cancer.gov",
     ],
+    accessControlAllowOrigin: "*",
+    accessControlAllowCredentials: true,
   })
 );
 
