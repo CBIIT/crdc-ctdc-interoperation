@@ -26,6 +26,7 @@ app.use(
       "https://caninecommons-qa.cancer.gov",
       "https://caninecommons.cancer.gov",
     ],
+    methods: ["POST", "OPTIONS"],
     credentials: true,
     allowedHeaders: [
       "Content-Type",
