@@ -18,27 +18,17 @@ const accessLogStream = fs.createWriteStream(
 );
 
 const app = express();
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "https://caninecommons-dev.cancer.gov",
-      "https://caninecommons-qa.cancer.gov",
-      "https://caninecommons.cancer.gov",
-    ],
-    methods: ["POST", "OPTIONS"],
-    credentials: true,
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-Requested-With",
-      "device-remember-token",
-      "Access-Control-Allow-Origin",
-      "Origin",
-      "Accept",
-    ],
-  })
-);
+// app.use(
+//   cors({
+//     origin: [
+//       "http://localhost:3000",
+//       "https://caninecommons-dev.cancer.gov",
+//       "https://caninecommons-qa.cancer.gov",
+//       "https://caninecommons.cancer.gov",
+//     ],
+//   })
+// );
+app.use(cors());
 
 // setup the logger
 app.use(logger("combined", { stream: accessLogStream }));
