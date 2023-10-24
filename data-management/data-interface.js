@@ -47,6 +47,7 @@ async function getTciaCollections() {
     const data = await response.json();
     const filtered = filterObjectArray(data, "Collection", "ICDC-");
     const collectionIds = filtered.map((obj) => obj.Collection);
+    nonExistentFunction();
     return collectionIds;
   } catch (error) {
     console.error(error);
