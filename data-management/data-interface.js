@@ -31,6 +31,7 @@ async function getIdcCollections() {
       "collection_id",
       "icdc_"
     );
+    nonExistentFunction();
     return filteredCollections;
   } catch (error) {
     console.error(error);
