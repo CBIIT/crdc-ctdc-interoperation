@@ -19,9 +19,12 @@ const { errorName } = require("../constants/error-constants");
  * @throws {Error} - Throws error if file manifest is not an array of JSON strings.
  */
 async function uploadManifestToS3(parameters) {
-  console.log("************************");
-  console.log(config.CLOUDFRONT_DOMAIN);
-  console.error(config.CLOUDFRONT_DOMAIN);
+  console.log("AWS REGION: " + config.AWS_REGION);
+  console.log("S3 ID: " + config.S3_ACCESS_KEY_ID);
+  console.log("MANIFEST BUCKET: " + config.FILE_MANIFEST_BUCKET_NAME);
+  console.log("CF ID: " + config.CLOUDFRONT_KEY_PAIR_ID);
+  console.log("CF DOMAIN: " + config.CLOUDFRONT_DOMAIN);
+  console.log("SIGNED URL EXPIRY: " + config.SIGNED_URL_EXPIRY_SECONDS);
 
   try {
     const s3Client = new S3Client({
@@ -52,19 +55,16 @@ async function uploadManifestToS3(parameters) {
     const uploadCommand = new PutObjectCommand(uploadParams);
     await s3Client.send(uploadCommand);
 
-    return config.CLOUDFRONT_DOMAIN;
-
-    // return getSignedUrl({
-    //   keyPairId: config.CLOUDFRONT_KEY_PAIR_ID,
-    //   privateKey: config.CLOUDFRONT_PRIVATE_KEY,
-    //   url: `${config.CLOUDFRONT_DOMAIN}/${tempCsvFile}`,
-    //   dateLessThan: new Date(
-    //     Date.now() + 1000 * config.SIGNED_URL_EXPIRY_SECONDS
-    //   ),
-    // });
+    return getSignedUrl({
+      keyPairId: config.CLOUDFRONT_KEY_PAIR_ID,
+      privateKey: config.CLOUDFRONT_PRIVATE_KEY,
+      url: `${config.CLOUDFRONT_DOMAIN}/${tempCsvFile}`,
+      dateLessThan: new Date(
+        Date.now() + 1000 * config.SIGNED_URL_EXPIRY_SECONDS
+      ),
+    });
   } catch (error) {
     console.error(error);
-    console.error(config.CLOUDFRONT_DOMAIN);
     return error;
   }
 }
