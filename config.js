@@ -3,7 +3,7 @@ dotenv.config();
 
 const config = {
   version: process.env.VERSION,
-  // date: process.env.DATE,
+  date: process.env.DATE,
   BENTO_BACKEND_GRAPHQL_URI: process.env.BENTO_BACKEND_GRAPHQL_URI,
   // REDIS_HOST: process.env.REDIS_HOST,
   // REDIS_PORT: process.env.REDIS_PORT,
@@ -15,7 +15,7 @@ const config = {
   CLOUDFRONT_PRIVATE_KEY: process.env.CLOUDFRONT_PRIVATE_KEY,
   CLOUDFRONT_DOMAIN: process.env.CLOUDFRONT_DOMAIN,
   SIGNED_URL_EXPIRY_SECONDS: process.env.SIGNED_URL_EXPIRY_SECONDS,
-  // REDIS_AUTH_ENABLED: process.env.REDIS_AUTH_ENABLED,
+  REDIS_AUTH_ENABLED: process.env.REDIS_AUTH_ENABLED,
   // REDIS_PASSWORD: process.env.REDIS_PASSWORD,
 };
 
