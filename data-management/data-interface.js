@@ -34,7 +34,7 @@ async function getIdcCollections() {
     const filteredCollections = filterObjectArray(
       data["collections"],
       "collection_id",
-      "icdc_"
+      "cmb_"
     );
     return filteredCollections;
   } catch (error) {
@@ -50,17 +50,18 @@ async function getIdcCollections() {
  * @returns {Promise<string[]>} - Promise that resolves with an array of TCIA collection IDs.
  */
 async function getTciaCollections() {
+  // return collectionIds = {}
   try {
     const response = await fetch(
       `${TCIA_API_BASE_URL}${TCIA_API_COLLECTIONS_ENDPOINT}`
     );
     const data = await response.json();
-    const filtered = filterObjectArray(data, "Collection", "ICDC-");
+    const filtered = filterObjectArray(data, "Collection", "cmb-");
     const collectionIds = filtered.map((obj) => obj.Collection);
     return collectionIds;
   } catch (error) {
     console.error(error);
-    return [];
+    return "TCIA Connection error";
   }
 }
 
@@ -80,7 +81,7 @@ async function getTciaCollectionData(collection_id) {
     return data;
   } catch (error) {
     console.error(error);
-    return [];
+    return "TCIA Connection error";
   }
 }
 
@@ -91,23 +92,29 @@ async function getTciaCollectionData(collection_id) {
  * @returns {Promise<Object[]>} - Promise that resolves with an array of ICDC study data objects.
  * @throws {Error} - Throws error if there is an issue connecting to ICDC backend instance.
  */
-async function getIcdcStudyData() {
+async function getCtdcStudyData() {
   try {
     const body = JSON.stringify({
       query: `{
-              studiesByProgram {
-                  clinical_study_designation
-                  numberOfImageCollections
-                  numberOfCRDCNodes
-              }
-          }`,
+        getAllStudies {
+          study_id
+          study_short_name
+          image_collection_count
+        }
+      }`,
+      variables: {}  // Include the variables here, even if it’s an empty object
     });
+    
     const response = await fetch(config.BENTO_BACKEND_GRAPHQL_URI, {
       method: "POST",
-      body: body,
+      headers: {
+        "Content-Type": "application/json",  // Make sure to set the Content-Type header to JSON
+      },
+      body: body,  // The body now includes both query and variables
     });
+    
     const data = await response.json();
-    const studyData = data.data?.studiesByProgram;
+    const studyData = data.data?.getAllStudies;
     return studyData;
   } catch (error) {
     console.error(error);
@@ -168,11 +175,11 @@ async function mapCollectionsToStudies(parameters, context) {
       }
     }
 
-    const icdcStudies = await getIcdcStudyData();
+    const ctdcStudies = await getCtdcStudyData();
     if (
       parameters.study_code?.length >= 0 &&
-      !icdcStudies
-        .map((obj) => obj.clinical_study_designation)
+      !ctdcStudies
+        .map((obj) => obj.study_id)
         .includes(parameters.study_code)
     ) {
       throw new Error(errorName.STUDY_CODE_NOT_FOUND);
@@ -183,24 +190,30 @@ async function mapCollectionsToStudies(parameters, context) {
 
     let tciaCollectionsData = {};
     let collectionMappings = [];
+    if (tciaCollections != "TCIA Connection error"){
+      for (collection in tciaCollections) {
+        const tciaCollectionData = await getTciaCollectionData(
+          tciaCollections[collection]
+        );
+        tciaCollectionsData[tciaCollections[collection]] = tciaCollectionData;
+      }
+  }
+  
 
-    for (collection in tciaCollections) {
-      const tciaCollectionData = await getTciaCollectionData(
-        tciaCollections[collection]
-      );
-      tciaCollectionsData[tciaCollections[collection]] = tciaCollectionData;
-    }
-
-    for (study in icdcStudies) {
+    for (study in ctdcStudies) {
       // fuzzy match strings using damerau-levenshtein distance
       let idcMatches = search(
-        icdcStudies[study]?.clinical_study_designation,
+        ctdcStudies[study]?.study_short_name,
         idcCollections.map((obj) => obj.collection_id)
       );
+
       let tciaMatches = search(
-        icdcStudies[study]?.clinical_study_designation,
+        ctdcStudies[study]?.study_id,
         tciaCollections
-      );
+      )
+    
+
+    
 
       let collectionUrls = [];
 
@@ -215,7 +228,7 @@ async function mapCollectionsToStudies(parameters, context) {
             { wordwrap: null }
           );
           // handle oddly-formatted response HTML for GLIOMA01
-          if (icdcStudies[study]?.clinical_study_designation === "GLIOMA01") {
+          if (ctdcStudies[study]?.study_id === "GLIOMA01") {
             idcCollectionMetadata["description"] = cleanedDescText
               .replace(/\n\n|\s*\[.*?\]\s*/g, " ")
               .replace(/ \./g, ".")
@@ -225,18 +238,19 @@ async function mapCollectionsToStudies(parameters, context) {
           }
           idcCollectionMetadata["__typename"] = "IDCMetadata";
           collectionUrls.push({
-            repository: "IDC",
-            url: idcCollectionUrl,
+            associated_link_name: "IDC",
+            associated_link_url: idcCollectionUrl,
             metadata: idcCollectionMetadata,
           });
         }
       } else {
         collectionUrls.push({
-          repository: "IDC",
-          url: "API failed",
+          associated_link_name: "IDC",
+          associated_link_url: "API failed",
         });
       }
-      if (tciaMatches.length !== 0) {
+
+      if (tciaMatches.length !== 0 || tciaCollections != "TCIA Connection error") {
         for (match in tciaMatches) {
           if (tciaCollectionsData[tciaMatches[match]]?.length > 0) {
             const tciaCollectionUrl = `${TCIA_COLLECTION_BASE_URL}${tciaMatches[match]}`;
@@ -246,6 +260,13 @@ async function mapCollectionsToStudies(parameters, context) {
               (tot, obj) => tot + parseInt(obj.ImageCount),
               0
             );
+            let imageBool = false;
+
+            if (tciaCollectionMetadata && tciaCollectionMetadata.length > 0) {
+              imageBool = true
+              
+            }
+
             const totalPatients = [
               ...new Set(tciaCollectionMetadata.map((obj) => obj.PatientID)),
             ].length;
@@ -258,13 +279,13 @@ async function mapCollectionsToStudies(parameters, context) {
               ),
             ];
             // hardcode inaccessible TCIA data for GLIOMA01
-            if (icdcStudies[study]?.clinical_study_designation === "GLIOMA01") {
+            if (ctdcStudies[study]?.study_id === "GLIOMA01") {
               uniqueModalities.push("Histopathology");
               totalImages += 84;
             }
             collectionUrls.push({
-              repository: "TCIA",
-              url: tciaCollectionUrl,
+              associated_link_name: "TCIA",
+              associated_link_url: tciaCollectionUrl,
               metadata: {
                 __typename: "TCIAMetadata",
                 Collection: tciaMatches[match],
@@ -272,6 +293,7 @@ async function mapCollectionsToStudies(parameters, context) {
                 Aggregate_Modality: uniqueModalities.join(", "),
                 Aggregate_BodyPartExamined: uniqueBodypartsExamined,
                 Aggregate_ImageCount: totalImages,
+                Aggregate_ImageBool: imageBool,
               },
             });
           } else {
@@ -289,7 +311,7 @@ async function mapCollectionsToStudies(parameters, context) {
       }
       if (
         parameters.study_code &&
-        parameters.study_code === icdcStudies[study]?.clinical_study_designation
+        parameters.study_code === ctdcStudies[study]?.study_id
       ) {
         if (redisConnected) {
           await redisClient.set(queryKey, JSON.stringify(collectionUrls), {
@@ -299,14 +321,12 @@ async function mapCollectionsToStudies(parameters, context) {
         }
         return collectionUrls;
       }
-      if (icdcStudies[study]?.numberOfCRDCNodes > 0) {
+      if (ctdcStudies[study]?.image_collection_count > 0) {
         collectionMappings.push({
-          CRDCLinks: collectionUrls,
-          numberOfCRDCNodes: icdcStudies[study]?.numberOfCRDCNodes,
-          numberOfImageCollections:
-            icdcStudies[study]?.numberOfImageCollections,
-          clinical_study_designation:
-            icdcStudies[study]?.clinical_study_designation,
+          associated_links: collectionUrls,
+          image_collection_count: ctdcStudies[study]?.image_collection_count,
+          study_id: ctdcStudies[study]?.study_id,
+          study_short_name: ctdcStudies[study]?.study_short_name,
         });
       }
     }
@@ -326,6 +346,6 @@ async function mapCollectionsToStudies(parameters, context) {
 module.exports = {
   getIdcCollections,
   getTciaCollections,
-  getIcdcStudyData,
+  getCtdcStudyData,
   mapCollectionsToStudies,
 };

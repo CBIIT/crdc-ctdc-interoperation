@@ -25,8 +25,8 @@ This microservice supports interoperability between the ICDC and other nodes in 
 
 ```
 {
-    studiesByProgram {
-        clinical_study_designation,
+    getAllStudies {
+        study_id,
         CRDCLinks {
             url,
             repository,
@@ -65,9 +65,9 @@ This microservice supports interoperability between the ICDC and other nodes in 
 ```
 {
     "data": {
-        "studiesByProgram": [
+        "getAllStudies": [
             {
-                "clinical_study_designation": "GLIOMA01",
+                "study_id": "GLIOMA01",
                 "CRDCLinks": [
                     {
                         "url": "https://portal.imaging.datacommons.cancer.gov/explore/filters/?collection_id=icdc_glioma",

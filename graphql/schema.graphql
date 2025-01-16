@@ -40,25 +40,27 @@ type TCIAMetadata {
   Aggregate_Modality: String
   Aggregate_BodyPartExamined: [String]
   Aggregate_ImageCount: Int
+  Aggregate_ImageBool: Boolean
 }
 
 union Metadata = IDCMetadata | TCIAMetadata
 
-type Link {
-  repository: String
-  url: String
+type AssociatedLink {
+  associated_link_name: String
+  associated_link_url: String
+  associated_link_id: String
   metadata: Metadata
 }
 
-type StudyOfProgram {
-  clinical_study_designation: String
-  CRDCLinks: [Link]
-  numberOfCRDCNodes: Int
-  numberOfImageCollections: Int
+type Study {
+  study_short_name: String
+  study_id: String
+  associated_links: [AssociatedLink]
+  image_collection_count: Int
 }
 
 type QueryType {
-  studiesByProgram: [StudyOfProgram]
-  studyLinks(study_code: String!): [Link]
+  getAllStudies: [Study]
+  studyLinks(study_code: String!): [AssociatedLink]
   storeManifest(manifest: String!): String
 }
