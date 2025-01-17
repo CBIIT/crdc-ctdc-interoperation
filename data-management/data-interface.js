@@ -298,15 +298,15 @@ async function mapCollectionsToStudies(parameters, context) {
             });
           } else {
             collectionUrls.push({
-              repository: "TCIA",
-              url: "API failed",
+              associated_link_name: "TCIA",
+              associated_link_url: "API failed",
             });
           }
         }
       } else {
         collectionUrls.push({
-          repository: "TCIA",
-          url: "API failed",
+          associated_link_name: "TCIA",
+          associated_link_url: "API failed",
         });
       }
       if (
