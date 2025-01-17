@@ -26,21 +26,25 @@ const {
  * @returns {Promise<string[]>} - Promise that resolves with an array of IDC collections.
  */
 async function getIdcCollections() {
-  try {
+  
     const response = await fetch(
       `${IDC_API_BASE_URL}${IDC_API_COLLECTIONS_ENDPOINT}`
     );
+    try {
     const data = await response.json();
+
     const filteredCollections = filterObjectArray(
       data["collections"],
       "collection_id",
       "cmb_"
     );
+  
     return filteredCollections;
   } catch (error) {
-    console.error(error);
-    return [];
+    console.error("IDC API Call Fails");
+    return "IDC Connection error";
   }
+  
 }
 
 /**
@@ -60,7 +64,7 @@ async function getTciaCollections() {
     const collectionIds = filtered.map((obj) => obj.Collection);
     return collectionIds;
   } catch (error) {
-    console.error(error);
+    console.error("TCIA API Call Fails");
     return "TCIA Connection error";
   }
 }
@@ -80,7 +84,7 @@ async function getTciaCollectionData(collection_id) {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error(error);
+    console.error("TCIA COLLECTION DATA ERROR");
     return "TCIA Connection error";
   }
 }
@@ -117,8 +121,7 @@ async function getCtdcStudyData() {
     const studyData = data.data?.getAllStudies;
     return studyData;
   } catch (error) {
-    console.error(error);
-    throw new Error(errorName.BENTO_BACKEND_NOT_CONNECTED);
+    console.error("BENTO BACKEND NOT CONNECTED");
   }
 }
 
@@ -154,7 +157,7 @@ async function mapCollectionsToStudies(parameters, context) {
         });
       }
       redisClient.on("error", async (error) => {
-        console.error(error);
+        console.error("REDIS CLIENT ERROR");
         await redisClient.disconnect();
         redisConnected = false;
       });
@@ -163,7 +166,7 @@ async function mapCollectionsToStudies(parameters, context) {
         redisConnected = true;
       }
     } catch (error) {
-      console.error(error);
+      console.error("REDIS CLIENT ERROR ,SETTING TO FALSE");
       redisConnected = false;
     }
 
@@ -182,7 +185,7 @@ async function mapCollectionsToStudies(parameters, context) {
         .map((obj) => obj.study_id)
         .includes(parameters.study_code)
     ) {
-      throw new Error(errorName.STUDY_CODE_NOT_FOUND);
+      console.error("STUDY CODE NOT FOUND");
     }
 
     const idcCollections = await getIdcCollections();
@@ -199,14 +202,19 @@ async function mapCollectionsToStudies(parameters, context) {
       }
   }
   
-
+  let idcMatches = []
+  
     for (study in ctdcStudies) {
       // fuzzy match strings using damerau-levenshtein distance
-      let idcMatches = search(
+      if(idcCollections !== 'IDC Connection error'){
+
+      
+      idcMatches = search(
         ctdcStudies[study]?.study_short_name,
         idcCollections.map((obj) => obj.collection_id)
+    
       );
-
+    }
       let tciaMatches = search(
         ctdcStudies[study]?.study_id,
         tciaCollections
@@ -217,12 +225,12 @@ async function mapCollectionsToStudies(parameters, context) {
 
       let collectionUrls = [];
 
-      if (idcMatches.length !== 0) {
+      if (idcMatches.length !== 0 || idcCollections !== 'IDC Connection error') {
         for (match in idcMatches) {
           const idcCollectionUrl = `${IDC_COLLECTION_BASE_URL}${idcMatches[match]}`;
           let idcCollectionMetadata = idcCollections.find(
             (obj) => obj.collection_id === idcMatches[match]
-          );
+          );x
           const cleanedDescText = htmlToText(
             idcCollectionMetadata["description"],
             { wordwrap: null }
@@ -245,12 +253,14 @@ async function mapCollectionsToStudies(parameters, context) {
         }
       } else {
         collectionUrls.push({
-          associated_link_name: "IDC",
-          associated_link_url: "API failed",
+          // Will return null if something is wrong 
+          associated_: "IDC",
+          associated_l: "IDC"
         });
+        console.log(errorName.IDC_INTERNAL_SERVER_ERROR)
       }
 
-      if (tciaMatches.length !== 0 || tciaCollections != "TCIA Connection error") {
+      if (tciaMatches.length !== 0 || tciaCollections !== "TCIA Connection error") {
         for (match in tciaMatches) {
           if (tciaCollectionsData[tciaMatches[match]]?.length > 0) {
             const tciaCollectionUrl = `${TCIA_COLLECTION_BASE_URL}${tciaMatches[match]}`;
@@ -298,16 +308,20 @@ async function mapCollectionsToStudies(parameters, context) {
             });
           } else {
             collectionUrls.push({
-              associated_link_name: "TCIA",
-              associated_link_url: "API failed",
+              // Will return null if something is wrong 
+              associated_: "IDC",
+              associated_l: "IDC"
             });
+            console.log(errorName.TCIA_INTERNAL_SERVER_ERROR)
           }
         }
       } else {
         collectionUrls.push({
-          associated_link_name: "TCIA",
-          associated_link_url: "API failed",
+          // Will return null if something is wrong 
+          associated_: "IDC",
+          associated_l: "IDC"
         });
+        console.log(errorName.TCIA_INTERNAL_SERVER_ERROR)
       }
       if (
         parameters.study_code &&
@@ -338,7 +352,7 @@ async function mapCollectionsToStudies(parameters, context) {
     }
     return collectionMappings;
   } catch (error) {
-    console.error(error);
+    console.error(" ERROR WHILE MAPPING COLLECTIONS TO STUDIES");
     return error;
   }
 }
