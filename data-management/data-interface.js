@@ -254,8 +254,7 @@ async function mapCollectionsToStudies(parameters, context) {
       } else {
         collectionUrls.push({
           // Will return null if something is wrong 
-          associated_: "IDC",
-          associated_l: "IDC"
+
         });
         console.log(errorName.IDC_INTERNAL_SERVER_ERROR)
       }
@@ -309,8 +308,6 @@ async function mapCollectionsToStudies(parameters, context) {
           } else {
             collectionUrls.push({
               // Will return null if something is wrong 
-              associated_: "IDC",
-              associated_l: "IDC"
             });
             console.log(errorName.TCIA_INTERNAL_SERVER_ERROR)
           }
@@ -318,8 +315,7 @@ async function mapCollectionsToStudies(parameters, context) {
       } else {
         collectionUrls.push({
           // Will return null if something is wrong 
-          associated_: "IDC",
-          associated_l: "IDC"
+
         });
         console.log(errorName.TCIA_INTERNAL_SERVER_ERROR)
       }
