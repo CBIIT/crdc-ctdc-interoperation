@@ -85,7 +85,7 @@ async function getTciaCollectionData(collection_id) {
     return data;
   } catch (error) {
     console.error("TCIA COLLECTION DATA ERROR");
-    return [];
+    return {};
   }
 }
 
