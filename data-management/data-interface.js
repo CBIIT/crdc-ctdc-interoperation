@@ -193,7 +193,7 @@ async function mapCollectionsToStudies(parameters, context) {
 
     let tciaCollectionsData = {};
     let collectionMappings = [];
-    if (tciaCollections != "TCIA Connection error"){
+    if (tciaCollections !== "TCIA Connection error"){
       for (collection in tciaCollections) {
         const tciaCollectionData = await getTciaCollectionData(
           tciaCollections[collection]
@@ -230,7 +230,7 @@ async function mapCollectionsToStudies(parameters, context) {
           const idcCollectionUrl = `${IDC_COLLECTION_BASE_URL}${idcMatches[match]}`;
           let idcCollectionMetadata = idcCollections.find(
             (obj) => obj.collection_id === idcMatches[match]
-          );x
+          );
           const cleanedDescText = htmlToText(
             idcCollectionMetadata["description"],
             { wordwrap: null }
