@@ -89,10 +89,10 @@ This microservice supports interoperability between the CTDC and other nodes in 
                         }
                     },
                     {
-                        "url": "https://nbia.cancerimagingarchive.net/nbia-search/?MinNumberOfStudiesCriteria=1&CollectionCriteria=CTDC-Glioma",
+                        "url": "https://nbia.cancerimagingarchive.net/nbia-search/?MinNumberOfStudiesCriteria=1&CollectionCriteria=CTDC",
                         "repository": "TCIA",
                         "metadata": {
-                            "Collection": "CTDC-Glioma",
+                            "Collection": "CTDC",
                             "total_patient_IDs": 57,
                             "unique_modalities": [
                                 "MR"
