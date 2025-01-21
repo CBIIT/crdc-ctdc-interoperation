@@ -65,7 +65,7 @@ async function getTciaCollections() {
     return collectionIds;
   } catch (error) {
     console.error("TCIA API Call Fails");
-    return "TCIA Connection error";
+    return [];
   }
 }
 
@@ -85,7 +85,7 @@ async function getTciaCollectionData(collection_id) {
     return data;
   } catch (error) {
     console.error("TCIA COLLECTION DATA ERROR");
-    return "TCIA Connection error";
+    return [];
   }
 }
 
@@ -193,7 +193,7 @@ async function mapCollectionsToStudies(parameters, context) {
 
     let tciaCollectionsData = {};
     let collectionMappings = [];
-    if (tciaCollections !== "TCIA Connection error"){
+    if (tciaCollections.length !== 0){
       for (collection in tciaCollections) {
         const tciaCollectionData = await getTciaCollectionData(
           tciaCollections[collection]
@@ -206,7 +206,7 @@ async function mapCollectionsToStudies(parameters, context) {
   
     for (study in ctdcStudies) {
       // fuzzy match strings using damerau-levenshtein distance
-      if(idcCollections !== 'IDC Connection error'){
+      if(idcCollections.length !== 0){
 
       
       idcMatches = search(
@@ -225,7 +225,7 @@ async function mapCollectionsToStudies(parameters, context) {
 
       let collectionUrls = [];
 
-      if (idcMatches.length !== 0 || idcCollections !== 'IDC Connection error') {
+      if (idcMatches.length !== 0 ) {
         for (match in idcMatches) {
           const idcCollectionUrl = `${IDC_COLLECTION_BASE_URL}${idcMatches[match]}`;
           let idcCollectionMetadata = idcCollections.find(
@@ -259,7 +259,7 @@ async function mapCollectionsToStudies(parameters, context) {
         console.log(errorName.IDC_INTERNAL_SERVER_ERROR)
       }
 
-      if (tciaMatches.length !== 0 || tciaCollections !== "TCIA Connection error") {
+      if (tciaMatches.length !== 0 ) {
         for (match in tciaMatches) {
           if (tciaCollectionsData[tciaMatches[match]]?.length > 0) {
             const tciaCollectionUrl = `${TCIA_COLLECTION_BASE_URL}${tciaMatches[match]}`;
