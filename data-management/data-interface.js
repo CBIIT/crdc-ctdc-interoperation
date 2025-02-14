@@ -60,10 +60,10 @@ async function getTciaCollections() {
       `${TCIA_API_BASE_URL}${TCIA_API_COLLECTIONS_ENDPOINT}`
     );
     const data = await response.json();
-    const filtered = filterObjectArray(data, "Collection", "cmb-");
+    const filtered = filterObjectArray(data, "Collection", "CMB-");
     const collectionIds = filtered.map((obj) => obj.Collection);
     return collectionIds;
-  } catch (error) {
+  } catch (error) { 
     console.error("TCIA API Call Fails");
     return [];
   }
@@ -229,7 +229,7 @@ async function mapCollectionsToStudies(parameters, context) {
         for (match in idcMatches) {
           const idcCollectionUrl = `${IDC_COLLECTION_BASE_URL}${idcMatches[match]}`;
           let idcCollectionMetadata = idcCollections.find(
-            (obj) => obj.collection_id === idcMatches[match]
+            (obj) =>  obj.collection_id.toUpperCase() === idcMatches[match]
           );
           const cleanedDescText = htmlToText(
             idcCollectionMetadata["description"],
