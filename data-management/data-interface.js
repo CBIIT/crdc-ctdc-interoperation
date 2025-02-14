@@ -60,10 +60,10 @@ async function getTciaCollections() {
       `${TCIA_API_BASE_URL}${TCIA_API_COLLECTIONS_ENDPOINT}`
     );
     const data = await response.json();
-    const filtered = filterObjectArray(data, "Collection", "cmb-");
+    const filtered = filterObjectArray(data, "Collection", "CMB-");
     const collectionIds = filtered.map((obj) => obj.Collection);
     return collectionIds;
-  } catch (error) {
+  } catch (error) { 
     console.error("TCIA API Call Fails");
     return [];
   }
@@ -216,7 +216,7 @@ async function mapCollectionsToStudies(parameters, context) {
       );
     }
       let tciaMatches = search(
-        ctdcStudies[study]?.study_id,
+        ctdcStudies[study]?.study_short_name,
         tciaCollections
       )
     
@@ -229,21 +229,9 @@ async function mapCollectionsToStudies(parameters, context) {
         for (match in idcMatches) {
           const idcCollectionUrl = `${IDC_COLLECTION_BASE_URL}${idcMatches[match]}`;
           let idcCollectionMetadata = idcCollections.find(
-            (obj) => obj.collection_id === idcMatches[match]
+            (obj) =>  obj.collection_id.toUpperCase() === idcMatches[match].toUpperCase()
           );
-          const cleanedDescText = htmlToText(
-            idcCollectionMetadata["description"],
-            { wordwrap: null }
-          );
-          // handle oddly-formatted response HTML for GLIOMA01
-          if (ctdcStudies[study]?.study_id === "GLIOMA01") {
-            idcCollectionMetadata["description"] = cleanedDescText
-              .replace(/\n\n|\s*\[.*?\]\s*/g, " ")
-              .replace(/ \./g, ".")
-              .replace(" ICDC-Glioma", "");
-          } else {
-            idcCollectionMetadata["description"] = cleanedDescText;
-          }
+     
           idcCollectionMetadata["__typename"] = "IDCMetadata";
           collectionUrls.push({
             associated_link_name: "IDC",
