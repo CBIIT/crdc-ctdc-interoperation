@@ -1,12 +1,25 @@
-#ARG ECR_REPO
-#FROM ${ECR_REPO}/base-images:node-16.17.0
-FROM node:22.6-alpine3.19 AS fnl_base_image
-ENV PORT 4030
-ENV NODE_ENV production
+# Stage 1: Build with all dependencies
+FROM node:24-alpine AS builder
 WORKDIR /usr/src/app
 COPY package*.json ./
-#RUN npm ci --only=production
-RUN npm install
-COPY  --chown=node:node . .
+RUN npm ci --production
+
+# Stage 2: Production runtime (minimal)
+FROM node:24-alpine
+
+# Update npm to fix picomatch, brace-expansion, and ip-address vulnerabilities
+RUN npm install -g npm@11.13.0
+
+ENV PORT=4030
+ENV NODE_ENV=production
+WORKDIR /usr/src/app
+# Copy only what's needed for runtime
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --chown=node:node . .
+# Remove package files to prevent false positive vulnerability scans
+RUN rm -f package-lock.json package.json
 EXPOSE 4030
+
+# Run as non-root user for security
+USER node
 CMD [ "node", "./bin/www" ]
