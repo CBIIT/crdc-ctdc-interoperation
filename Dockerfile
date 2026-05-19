@@ -1,12 +1,23 @@
-#ARG ECR_REPO
-#FROM ${ECR_REPO}/base-images:node-16.17.0
-FROM node:22.6-alpine3.19 AS fnl_base_image
-ENV PORT 4030
-ENV NODE_ENV production
+FROM node:24-alpine3.23
+
+# Upgrade npm to fix vulnerabilities
+RUN npm install -g npm@11.14.1
+
+ENV PORT=4030
+ENV NODE_ENV=production
 WORKDIR /usr/src/app
+
+# Copy package files first (better caching)
 COPY package*.json ./
-#RUN npm ci --only=production
-RUN npm install
-COPY  --chown=node:node . .
+
+# Install production dependencies only
+RUN npm ci --omit=dev --ignore-scripts
+
+# Copy application code
+COPY --chown=node:node . .
+
 EXPOSE 4030
+
+# Run as non-root user
+USER node
 CMD [ "node", "./bin/www" ]
