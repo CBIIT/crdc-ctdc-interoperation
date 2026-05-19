@@ -18,6 +18,4 @@ COPY --chown=node:node . .
 
 EXPOSE 4030
 
-# Run as non-root user
-USER node
 CMD [ "node", "./bin/www" ]
